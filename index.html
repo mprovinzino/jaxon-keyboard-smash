@@ -22,7 +22,8 @@
 // // ==============================
 // ==============================
 // ==============================
-// Simplified Audio and Firework Animation with Key Press Interactions
+// ==============================
+// Simplified Audio and Firework Animation with Debugging
 // ==============================
 
 // Create an array of multiple audio instances for the sound effect
@@ -79,10 +80,12 @@ window.addEventListener('resize', function(event) {
     ch = window.innerHeight;
     canvas.width = cw;
     canvas.height = ch;
+    console.log("Canvas resized to: ", cw, ch);
 }, true);
 
 // Function to create particles/fireworks
 function createParticles(x, y) {
+    console.log(`Creating particles at position: (${x}, ${y})`); // Debug log
     const numParticles = 30; // Number of particles per firework
     const particles = [];
     
@@ -126,7 +129,8 @@ function createParticles(x, y) {
 }
 
 // Event listener for keydown to trigger particle creation and sound playback
-document.addEventListener("keydown", function() {
+document.addEventListener("keydown", function(event) {
+    console.log("Key pressed: ", event.key); // Debug log
     const x = Math.random() * cw;
     const y = Math.random() * 0.5 * ch; // Random position in the top half of the canvas
     createParticles(x, y);
@@ -135,6 +139,7 @@ document.addEventListener("keydown", function() {
 
 // Event listener for mousedown to trigger particle creation and sound playback
 document.addEventListener("mousedown", function(e) {
+    console.log("Mouse clicked at: ", e.clientX, e.clientY); // Debug log
     createParticles(e.clientX, e.clientY);
     playSoundFromPool(); // Use the audio pool to control audio playback
 });
@@ -152,6 +157,7 @@ document.addEventListener("touchmove", function(e) {
 
     for (let i = 0; i < e.touches.length; ++i) {
         let touch = e.touches.item(i);
+        console.log("Touch moved at: ", touch.clientX, touch.clientY); // Debug log
         createParticles(touch.clientX, touch.clientY);
         playSoundFromPool(); // Use the audio pool to control audio playback
     }
