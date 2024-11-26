@@ -18,7 +18,8 @@
 // ==============================
 // Added: Global Sound Variables
 // // ==============================
-// Simplified Audio Using Audio Pool
+// ==============================
+// Simplified Audio Using Audio Pool with Key Press Interactions
 // ==============================
 
 // Create an array of multiple audio instances
@@ -88,6 +89,23 @@ document.addEventListener("touchmove", function(e) {
         playSoundFromPool(); // Use the audio pool to control audio playback
     }
 });
+
+// Make sure canvas and particles are properly set up for interaction
+function createParticles(x, y) {
+    // Particle creation logic should be here.
+    // This should match whatever your original `createParticles` function does.
+    console.log(`Creating particles at position: (${x}, ${y})`);
+}
+
+// Full screen dimensions setup for particle creation
+var cw = window.innerWidth;
+var ch = window.innerHeight;
+
+// Event to adjust canvas dimensions on resize
+window.addEventListener('resize', function(event) {
+    cw = window.innerWidth;
+    ch = window.innerHeight;
+}, true);
 
 
     // Update canvas sizes when window resizes.
