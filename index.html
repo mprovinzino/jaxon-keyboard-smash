@@ -52,8 +52,27 @@ snd.addEventListener('error', (e) => {
   }
   document.addEventListener("keydown", function() {
     createParticles(Math.random() * cw, Math.random() * 0.5 * ch);
-    snd.play();  // Play sound after direct user interaction
+    playRandomSound(); // Use playRandomSound to control audio playback
 });
+let audioReady = false;
+
+snd.addEventListener('canplaythrough', () => {
+    console.log("Audio loaded and ready to play.");
+    audioReady = true; // Set the flag when audio is ready
+});
+
+function playRandomSound() {
+    if (!audioReady) {
+        console.error("Audio is not ready yet.");
+        return; // Skip if audio isn't ready
+    }
+    const randomSection = soundSections[Math.floor(Math.random() * soundSections.length)];
+    snd.currentTime = randomSection.start; // Start playing from a random section
+    snd.play();
+    setTimeout(() => {
+        snd.pause();
+    }, (randomSection.end - randomSection.start) * 1000); // Stop after the section ends
+}
 
     // Update canvas sizes when window resizes.
     window.addEventListener('resize', function(event) {
