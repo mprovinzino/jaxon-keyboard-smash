@@ -83,12 +83,23 @@ window.addEventListener('resize', function(event) {
     console.log("Canvas resized to: ", cw, ch);
 }, true);
 
+// ==============================
+// Firework Particle System
+// ==============================
+
+var fireworkCanvas = document.getElementById('canvas');
+var fireworkCtx = fireworkCanvas.getContext('2d');
+fireworkCanvas.width = window.innerWidth;
+fireworkCanvas.height = window.innerHeight;
+
+// Particle and Firework Arrays
+let particles = [];
+
 // Function to create particles/fireworks
 function createParticles(x, y) {
     console.log(`Creating particles at position: (${x}, ${y})`); // Debug log
     const numParticles = 30; // Number of particles per firework
-    const particles = [];
-    
+
     for (let i = 0; i < numParticles; i++) {
         particles.push({
             x: x,
@@ -96,43 +107,51 @@ function createParticles(x, y) {
             angle: Math.random() * 2 * Math.PI, // Random direction
             speed: Math.random() * 5 + 2, // Random speed
             alpha: 1, // Opacity (fades over time)
-            decay: Math.random() * 0.01 + 0.005 // How fast it fades out
+            decay: Math.random() * 0.01 + 0.005, // How fast it fades out
+            color: `hsl(${Math.random() * 360}, 100%, 50%)` // Random color for each particle
         });
     }
-
-    // Draw particles to the canvas
-    function drawParticles() {
-        ctx.clearRect(0, 0, cw, ch); // Clear the canvas
-
-        particles.forEach((p, index) => {
-            p.x += Math.cos(p.angle) * p.speed;
-            p.y += Math.sin(p.angle) * p.speed;
-            p.alpha -= p.decay;
-
-            if (p.alpha <= 0) {
-                particles.splice(index, 1); // Remove particle if it has faded out
-            }
-
-            // Draw the particle
-            ctx.fillStyle = `rgba(255, 165, 0, ${p.alpha})`; // Orange color
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2, false);
-            ctx.fill();
-        });
-
-        if (particles.length > 0) {
-            requestAnimationFrame(drawParticles);
-        }
-    }
-
-    drawParticles(); // Start drawing the particles
 }
+
+// Draw function to handle particle movement and fading
+function fireworkLoop() {
+    // Clear the canvas
+    fireworkCtx.clearRect(0, 0, fireworkCanvas.width, fireworkCanvas.height);
+
+    // Draw and update each particle
+    particles.forEach((p, index) => {
+        p.x += Math.cos(p.angle) * p.speed;
+        p.y += Math.sin(p.angle) * p.speed;
+        p.alpha -= p.decay;
+
+        // Remove particles that are fully faded
+        if (p.alpha <= 0) {
+            particles.splice(index, 1);
+        }
+
+        // Draw the particle
+        fireworkCtx.fillStyle = `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${p.alpha})`;
+        fireworkCtx.beginPath();
+        fireworkCtx.arc(p.x, p.y, 3, 0, Math.PI * 2, false);
+        fireworkCtx.fill();
+    });
+
+    // Request the next frame for animation
+    requestAnimationFrame(fireworkLoop);
+}
+
+// Start the animation loop for fireworks
+fireworkLoop();
+
+// ==============================
+// Event Listeners to Trigger Fireworks and Sound
+// ==============================
 
 // Event listener for keydown to trigger particle creation and sound playback
 document.addEventListener("keydown", function(event) {
     console.log("Key pressed: ", event.key); // Debug log
-    const x = Math.random() * cw;
-    const y = Math.random() * 0.5 * ch; // Random position in the top half of the canvas
+    const x = Math.random() * fireworkCanvas.width;
+    const y = Math.random() * 0.5 * fireworkCanvas.height; // Random position in the top half of the canvas
     createParticles(x, y);
     playSoundFromPool(); // Use the audio pool to control audio playback
 });
@@ -162,14 +181,6 @@ document.addEventListener("touchmove", function(e) {
         playSoundFromPool(); // Use the audio pool to control audio playback
     }
 });
-
-// Make sure canvas and particles are properly set up for interaction
-function createParticles(x, y) {
-    // Particle creation logic should be here.
-    // This should match whatever your original `createParticles` function does.
-    console.log(`Creating particles at position: (${x}, ${y})`);
-}
-
 // Full screen dimensions setup for particle creation
 var cw = window.innerWidth;
 var ch = window.innerHeight;
