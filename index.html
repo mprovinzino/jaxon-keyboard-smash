@@ -19,9 +19,12 @@
 // Added: Global Sound Variables
 // ==============================
 // ==============================
-// Simplified Audio Test
+/// ==============================
+// Simplified Audio with Adjusted Rate Limiting
 // ==============================
-var snd = new Audio('./test-sound.mp3'); // Load the new test sound file
+
+// Create audio instance for the sound file
+var snd = new Audio('./test-sound.mp3'); // Replace with your desired sound file
 let audioReady = false;
 
 // Event listener to confirm when the audio file is ready
@@ -34,15 +37,44 @@ snd.addEventListener('error', (e) => {
     console.error("Error loading/playing audio: ", e);
 });
 
-// Trigger sound on keypress
-document.addEventListener("keydown", function() {
-    if (audioReady) {
-        snd.play();
-        console.log("Audio is playing");
-    } else {
-        console.error("Audio not ready yet.");
+// Function to play the sound
+function playRandomSound() {
+    if (!audioReady) {
+        console.error("Audio is not ready yet.");
+        return; // Skip if audio isn't ready
     }
+
+    const clone = snd.cloneNode(); // Clone the audio to avoid delay between plays
+    clone.play();
+    console.log("Audio is playing");
+}
+
+// Function to limit the rate of triggering fireworks for specific events
+let timeOfLastFirework = 0;
+let enoughTimeSinceLastFirework = function() {
+    let minimumTimeBetweenFireworks = 100; // Rate limit only for specific events
+    if (Date.now() - timeOfLastFirework < minimumTimeBetweenFireworks) {
+        return false;
+    } else {
+        timeOfLastFirework = Date.now();
+        return true;
+    }
+}
+
+// Event listener for keydown to trigger particle creation and sound playback
+document.addEventListener("keydown", function() {
+    createParticles(Math.random() * cw, Math.random() * 0.5 * ch);
+    playRandomSound(); // Play sound with no rate limiting for key press
 });
+
+// Event listener for mousedown to trigger particle creation and sound playback
+document.addEventListener("mousedown", function(e) {
+    createParticles(e.clientX, e.clientY);
+    playRandomSound(); // Play sound with no rate limiting for mouse click
+});
+
+// Event listener for touchmove with rate limiting to avoid excessive triggering
+document.addEventListener("touchmove",
 
 
     // Update canvas sizes when window resizes.
