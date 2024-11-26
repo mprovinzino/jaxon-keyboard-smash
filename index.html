@@ -26,6 +26,15 @@
       { start: 51.579, end: 68.772 },
       { start: 68.772, end: 85.965 }
   ];
+  
+  function playRandomSound() {
+      const randomSection = soundSections[Math.floor(Math.random() * soundSections.length)];
+      snd.currentTime = randomSection.start; // Start playing from a random section
+      snd.play();
+      setTimeout(() => {
+          snd.pause();
+      }, (randomSection.end - randomSection.start) * 1000); // Stop after the section ends
+  }
     // Update canvas sizes when window resizes.
     window.addEventListener('resize', function(event) {
         var canvases = document.querySelectorAll('canvas');
