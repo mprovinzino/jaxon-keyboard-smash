@@ -16,14 +16,16 @@
 <!--  <link rel="stylesheet" href="css/styles.css?v=1.0"> -->
 <script>
 // ==============================
-  // Added: Global Sound Variables
-  // ==============================
+// Added: Global Sound Variables
+// ==============================
 var snd = new Audio('./firework-sound.mp3'); // Current directory
-// Or
-var snd = new Audio('firework-sound.mp3');
 
-  snd.addEventListener('canplaythrough', () => {
+// Add event listeners for debugging and readiness
+let audioReady = false;
+
+snd.addEventListener('canplaythrough', () => {
     console.log("Audio loaded and ready to play.");
+    audioReady = true; // Set the flag when audio is ready
 });
 
 snd.addEventListener('play', () => {
@@ -34,45 +36,41 @@ snd.addEventListener('error', (e) => {
     console.error("Error loading/playing audio: ", e);
 });
 
-  const soundSections = [
-      { start: 0.0, end: 17.193 },
-      { start: 17.193, end: 34.386 },
-      { start: 34.386, end: 51.579 },
-      { start: 51.579, end: 68.772 },
-      { start: 68.772, end: 85.965 }
-  ];
-  
-  function playRandomSound() {
-      const randomSection = soundSections[Math.floor(Math.random() * soundSections.length)];
-      snd.currentTime = randomSection.start; // Start playing from a random section
-      snd.play();
-      setTimeout(() => {
-          snd.pause();
-      }, (randomSection.end - randomSection.start) * 1000); // Stop after the section ends
-  }
-  document.addEventListener("keydown", function() {
-    createParticles(Math.random() * cw, Math.random() * 0.5 * ch);
-    playRandomSound(); // Use playRandomSound to control audio playback
-});
-let audioReady = false;
+// Define sound sections for playback
+const soundSections = [
+    { start: 0.0, end: 17.193 },
+    { start: 17.193, end: 34.386 },
+    { start: 34.386, end: 51.579 },
+    { start: 51.579, end: 68.772 },
+    { start: 68.772, end: 85.965 }
+];
 
-snd.addEventListener('canplaythrough', () => {
-    console.log("Audio loaded and ready to play.");
-    audioReady = true; // Set the flag when audio is ready
-});
-
+// Function to play a random sound section
 function playRandomSound() {
     if (!audioReady) {
         console.error("Audio is not ready yet.");
         return; // Skip if audio isn't ready
     }
+    if (!snd.paused) {
+        console.log("Audio already playing, skipping...");
+        return; // Prevent overlap if the sound is already playing
+    }
+    
     const randomSection = soundSections[Math.floor(Math.random() * soundSections.length)];
     snd.currentTime = randomSection.start; // Start playing from a random section
     snd.play();
+
+    // Set a timeout to stop playback after the random section ends
     setTimeout(() => {
         snd.pause();
-    }, (randomSection.end - randomSection.start) * 1000); // Stop after the section ends
+    }, (randomSection.end - randomSection.start) * 1000);
 }
+
+// Event listener for keydown to trigger particle creation and sound playback
+document.addEventListener("keydown", function() {
+    createParticles(Math.random() * cw, Math.random() * 0.5 * ch);
+    playRandomSound(); // Use playRandomSound to control audio playback
+});
 
     // Update canvas sizes when window resizes.
     window.addEventListener('resize', function(event) {
