@@ -17,64 +17,77 @@
 <script>
 // ==============================
 // Added: Global Sound Variables
-// ==============================
-// ==============================
-/// ==============================
-// Simplified Audio with Adjusted Rate Limiting
+// // ==============================
+// Simplified Audio Using Audio Pool
 // ==============================
 
-// Create audio instance for the sound file
-var snd = new Audio('./test-sound.mp3'); // Replace with your desired sound file
+// Create an array of multiple audio instances
+const audioInstances = [
+    new Audio('./test-sound.mp3'),
+    new Audio('./test-sound.mp3'),
+    new Audio('./test-sound.mp3')
+];
 let audioReady = false;
 
-// Event listener to confirm when the audio file is ready
-snd.addEventListener('canplaythrough', () => {
-    console.log("New audio file loaded and ready to play.");
-    audioReady = true; // Set the flag when audio is ready
+// Set each audio instance to be ready before use
+audioInstances.forEach((audio, index) => {
+    audio.addEventListener('canplaythrough', () => {
+        console.log(`Audio instance ${index} loaded and ready to play.`);
+        audioReady = true; // Set the flag to true when any instance is ready
+    });
+
+    audio.addEventListener('error', (e) => {
+        console.error(`Error loading/playing audio instance ${index}: `, e);
+    });
 });
 
-snd.addEventListener('error', (e) => {
-    console.error("Error loading/playing audio: ", e);
-});
+let audioIndex = 0;
 
-// Function to play the sound
-function playRandomSound() {
+// Function to play sound using the pool of audio instances
+function playSoundFromPool() {
     if (!audioReady) {
         console.error("Audio is not ready yet.");
         return; // Skip if audio isn't ready
     }
 
-    const clone = snd.cloneNode(); // Clone the audio to avoid delay between plays
-    clone.play();
-    console.log("Audio is playing");
-}
+    const audio = audioInstances[audioIndex];
+    audio.currentTime = 0; // Reset to start to play from the beginning
+    audio.play();
 
-// Function to limit the rate of triggering fireworks for specific events
-let timeOfLastFirework = 0;
-let enoughTimeSinceLastFirework = function() {
-    let minimumTimeBetweenFireworks = 100; // Rate limit only for specific events
-    if (Date.now() - timeOfLastFirework < minimumTimeBetweenFireworks) {
-        return false;
-    } else {
-        timeOfLastFirework = Date.now();
-        return true;
-    }
+    // Move to the next audio instance (wrap around if needed)
+    audioIndex = (audioIndex + 1) % audioInstances.length;
+    console.log("Audio instance " + audioIndex + " is playing.");
 }
 
 // Event listener for keydown to trigger particle creation and sound playback
 document.addEventListener("keydown", function() {
     createParticles(Math.random() * cw, Math.random() * 0.5 * ch);
-    playRandomSound(); // Play sound with no rate limiting for key press
+    playSoundFromPool(); // Use the audio pool to control audio playback
 });
 
 // Event listener for mousedown to trigger particle creation and sound playback
 document.addEventListener("mousedown", function(e) {
     createParticles(e.clientX, e.clientY);
-    playRandomSound(); // Play sound with no rate limiting for mouse click
+    playSoundFromPool(); // Use the audio pool to control audio playback
 });
 
 // Event listener for touchmove with rate limiting to avoid excessive triggering
-document.addEventListener("touchmove",
+let timeOfLastFirework = 0;
+
+document.addEventListener("touchmove", function(e) {
+    let minimumTimeBetweenFireworks = 100; // Rate limit only for specific events
+    if (Date.now() - timeOfLastFirework < minimumTimeBetweenFireworks) {
+        return;
+    } else {
+        timeOfLastFirework = Date.now();
+    }
+
+    for (let i = 0; i < e.touches.length; ++i) {
+        let touch = e.touches.item(i);
+        createParticles(touch.clientX, touch.clientY);
+        playSoundFromPool(); // Use the audio pool to control audio playback
+    }
+});
 
 
     // Update canvas sizes when window resizes.
