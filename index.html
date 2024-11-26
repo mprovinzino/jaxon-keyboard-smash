@@ -14,6 +14,18 @@
 
 <!--  <link rel="stylesheet" href="css/styles.css?v=1.0"> -->
 <script>
+// ==============================
+  // Added: Global Sound Variables
+  // ==============================
+  var snd = new Audio("firework-sound.mp3");
+
+  const soundSections = [
+      { start: 0.0, end: 17.193 },
+      { start: 17.193, end: 34.386 },
+      { start: 34.386, end: 51.579 },
+      { start: 51.579, end: 68.772 },
+      { start: 68.772, end: 85.965 }
+  ];
     // Update canvas sizes when window resizes.
     window.addEventListener('resize', function(event) {
         var canvases = document.querySelectorAll('canvas');
