@@ -1,5 +1,5 @@
 <!doctype html>
-python3 -m http.server
+
 
 <html lang="en">
 <head>
@@ -47,6 +47,11 @@ snd.addEventListener('error', (e) => {
           snd.pause();
       }, (randomSection.end - randomSection.start) * 1000); // Stop after the section ends
   }
+  document.addEventListener("keydown", function() {
+    createParticles(Math.random() * cw, Math.random() * 0.5 * ch);
+    snd.play();  // Play sound after direct user interaction
+});
+
     // Update canvas sizes when window resizes.
     window.addEventListener('resize', function(event) {
         var canvases = document.querySelectorAll('canvas');
