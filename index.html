@@ -42,18 +42,19 @@
   }
 
   // ==============================
-  // Existing Canvas Resize Logic
+  // Canvas Resize Logic
   // ==============================
-  window.addEventListener('resize', function (event) {
+  window.addEventListener('resize', function () {
       var canvases = document.querySelectorAll('canvas');
-      var canvas_array = [...canvases];
-      canvas_array.forEach(canvas => {
+      canvases.forEach(canvas => {
           canvas.width = window.innerWidth;
           canvas.height = window.innerHeight;
       });
   }, true);
 
-  // Existing Canvas Setup Code
+  // ==============================
+  // Canvas and Particle Setup
+  // ==============================
   var canvas = document.getElementById('canvas'),
       ctx2 = canvas.getContext('2d'),
       cw = window.innerWidth,
@@ -64,6 +65,10 @@
   canvas.width = cw;
   canvas.height = ch;
 
+  function random(min, max) {
+      return Math.random() * (max - min) + min;
+  }
+
   function createParticles(x, y) {
       var particleCount = 30;
       while (particleCount--) {
@@ -71,30 +76,45 @@
       }
   }
 
-  // ==============================
-  // Updated Event Listeners
-  // ==============================
-  document.addEventListener("keydown", function () {
-      createParticles(Math.random() * cw, Math.random() * 0.5 * ch);
-      playRandomSound(); // Trigger sound
-  });
-
-  document.addEventListener("mousedown", function (e) {
-      createParticles(e.clientX, e.clientY);
-      playRandomSound(); // Trigger sound
-  });
-
-  document.addEventListener("touchstart", function (e) {
-      for (let i = 0; i < e.touches.length; ++i) {
-          let touch = e.touches.item(i);
-          createParticles(touch.clientX, touch.clientY);
-          playRandomSound(); // Trigger sound
+  function Particle(x, y) {
+      this.x = x;
+      this.y = y;
+      this.coordinates = [];
+      this.coordinateCount = 5;
+      while (this.coordinateCount--) {
+          this.coordinates.push([this.x, this.y]);
       }
-  });
+      this.angle = random(0, Math.PI * 2);
+      this.speed = random(1, 10);
+      this.friction = 0.95;
+      this.gravity = 1;
+      this.hue = random(hue - 50, hue + 50);
+      this.brightness = random(50, 80);
+      this.alpha = 1;
+      this.decay = random(0.015, 0.03);
+  }
 
-  // ==============================
-  // Existing Animation Loop
-  // ==============================
+  Particle.prototype.update = function (index) {
+      this.coordinates.pop();
+      this.coordinates.unshift([this.x, this.y]);
+      this.speed *= this.friction;
+      this.x += Math.cos(this.angle) * this.speed;
+      this.y += Math.sin(this.angle) * this.speed + this.gravity;
+      this.alpha -= this.decay;
+
+      if (this.alpha <= this.decay) {
+          particles.splice(index, 1);
+      }
+  };
+
+  Particle.prototype.draw = function () {
+      ctx2.beginPath();
+      ctx2.moveTo(this.coordinates[this.coordinates.length - 1][0], this.coordinates[this.coordinates.length - 1][1]);
+      ctx2.lineTo(this.x, this.y);
+      ctx2.strokeStyle = 'hsla(' + this.hue + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
+      ctx2.stroke();
+  };
+
   function loop() {
       ctx2.clearRect(0, 0, cw, ch);
       ctx2.globalCompositeOperation = 'lighter';
@@ -106,6 +126,30 @@
       requestAnimationFrame(loop);
   }
 
+  // ==============================
+  // Updated Event Listeners with Sound
+  // ==============================
+  document.addEventListener("keydown", function () {
+      createParticles(random(0, cw), random(0, ch));
+      playRandomSound(); // Play sound
+  });
+
+  document.addEventListener("mousedown", function (e) {
+      createParticles(e.clientX, e.clientY);
+      playRandomSound(); // Play sound
+  });
+
+  document.addEventListener("touchstart", function (e) {
+      for (let i = 0; i < e.touches.length; ++i) {
+          let touch = e.touches.item(i);
+          createParticles(touch.clientX, touch.clientY);
+          playRandomSound(); // Play sound
+      }
+  });
+
+  // ==============================
+  // Start the Animation
+  // ==============================
   window.addEventListener('load', loop, false);
 </script>
 </body>
