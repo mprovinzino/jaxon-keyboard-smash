@@ -19,10 +19,11 @@
 // Added: Global Sound Variables
 // // ==============================
 // ==============================
-// Simplified Audio Using Audio Pool with Key Press Interactions
+// ==============================
+// Simplified Audio and Firework Animation with Key Press Interactions
 // ==============================
 
-// Create an array of multiple audio instances
+// Create an array of multiple audio instances for the sound effect
 const audioInstances = [
     new Audio('./test-sound.mp3'),
     new Audio('./test-sound.mp3'),
@@ -60,9 +61,73 @@ function playSoundFromPool() {
     console.log("Audio instance " + audioIndex + " is playing.");
 }
 
+// Full screen dimensions setup for particle creation
+var cw = window.innerWidth;
+var ch = window.innerHeight;
+
+// Set up the canvas for fireworks
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+canvas.width = cw;
+canvas.height = ch;
+
+// Update canvas size on window resize
+window.addEventListener('resize', function(event) {
+    cw = window.innerWidth;
+    ch = window.innerHeight;
+    canvas.width = cw;
+    canvas.height = ch;
+}, true);
+
+// Function to create particles/fireworks
+function createParticles(x, y) {
+    const numParticles = 30; // Number of particles per firework
+    const particles = [];
+    
+    for (let i = 0; i < numParticles; i++) {
+        particles.push({
+            x: x,
+            y: y,
+            angle: Math.random() * 2 * Math.PI, // Random direction
+            speed: Math.random() * 5 + 2, // Random speed
+            alpha: 1, // Opacity (fades over time)
+            decay: Math.random() * 0.01 + 0.005 // How fast it fades out
+        });
+    }
+
+    // Draw particles to the canvas
+    function drawParticles() {
+        ctx.clearRect(0, 0, cw, ch); // Clear the canvas
+
+        particles.forEach((p, index) => {
+            p.x += Math.cos(p.angle) * p.speed;
+            p.y += Math.sin(p.angle) * p.speed;
+            p.alpha -= p.decay;
+
+            if (p.alpha <= 0) {
+                particles.splice(index, 1); // Remove particle if it has faded out
+            }
+
+            // Draw the particle
+            ctx.fillStyle = `rgba(255, 165, 0, ${p.alpha})`; // Orange color
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI * 2, false);
+            ctx.fill();
+        });
+
+        if (particles.length > 0) {
+            requestAnimationFrame(drawParticles);
+        }
+    }
+
+    drawParticles(); // Start drawing the particles
+}
+
 // Event listener for keydown to trigger particle creation and sound playback
 document.addEventListener("keydown", function() {
-    createParticles(Math.random() * cw, Math.random() * 0.5 * ch);
+    const x = Math.random() * cw;
+    const y = Math.random() * 0.5 * ch; // Random position in the top half of the canvas
+    createParticles(x, y);
     playSoundFromPool(); // Use the audio pool to control audio playback
 });
 
