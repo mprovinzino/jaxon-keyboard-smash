@@ -18,59 +18,32 @@
 // ==============================
 // Added: Global Sound Variables
 // ==============================
-var snd = new Audio('./test-sound.mp3'); // Current directory
-
-// Add event listeners for debugging and readiness
+// ==============================
+// Simplified Audio Test
+// ==============================
+var snd = new Audio('./test-sound.mp3'); // Load the new test sound file
 let audioReady = false;
 
+// Event listener to confirm when the audio file is ready
 snd.addEventListener('canplaythrough', () => {
-    console.log("Audio loaded and ready to play.");
+    console.log("New audio file loaded and ready to play.");
     audioReady = true; // Set the flag when audio is ready
-});
-
-snd.addEventListener('play', () => {
-    console.log("Audio is playing.");
 });
 
 snd.addEventListener('error', (e) => {
     console.error("Error loading/playing audio: ", e);
 });
 
-// Define sound sections for playback
-const soundSections = [
-    { start: 0.0, end: 17.193 },
-    { start: 17.193, end: 34.386 },
-    { start: 34.386, end: 51.579 },
-    { start: 51.579, end: 68.772 },
-    { start: 68.772, end: 85.965 }
-];
-
-// Function to play a random sound section
-function playRandomSound() {
-    if (!audioReady) {
-        console.error("Audio is not ready yet.");
-        return; // Skip if audio isn't ready
-    }
-    if (!snd.paused) {
-        console.log("Audio already playing, skipping...");
-        return; // Prevent overlap if the sound is already playing
-    }
-    
-    const randomSection = soundSections[Math.floor(Math.random() * soundSections.length)];
-    snd.currentTime = randomSection.start; // Start playing from a random section
-    snd.play();
-
-    // Set a timeout to stop playback after the random section ends
-    setTimeout(() => {
-        snd.pause();
-    }, (randomSection.end - randomSection.start) * 1000);
-}
-
-// Event listener for keydown to trigger particle creation and sound playback
+// Trigger sound on keypress
 document.addEventListener("keydown", function() {
-    createParticles(Math.random() * cw, Math.random() * 0.5 * ch);
-    playRandomSound(); // Use playRandomSound to control audio playback
+    if (audioReady) {
+        snd.play();
+        console.log("Audio is playing");
+    } else {
+        console.error("Audio not ready yet.");
+    }
 });
+
 
     // Update canvas sizes when window resizes.
     window.addEventListener('resize', function(event) {
