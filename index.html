@@ -18,7 +18,18 @@
   // Added: Global Sound Variables
   // ==============================
  snd.play();
-  
+  snd.addEventListener('canplaythrough', () => {
+    console.log("Audio loaded and ready to play.");
+});
+
+snd.addEventListener('play', () => {
+    console.log("Audio is playing.");
+});
+
+snd.addEventListener('error', (e) => {
+    console.error("Error loading/playing audio: ", e);
+});
+
   const soundSections = [
       { start: 0.0, end: 17.193 },
       { start: 17.193, end: 34.386 },
