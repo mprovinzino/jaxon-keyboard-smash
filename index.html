@@ -9,6 +9,7 @@
   <style>
     body {
       margin: 0;
+      overflow: hidden;
     }
     canvas {
       position: fixed;
@@ -33,15 +34,12 @@
     let backgroundCanvas = document.getElementById('kmw-background-canvas');
     let backgroundCtx = backgroundCanvas.getContext('2d');
 
-    // Set the canvas size to match the window
     function resizeBackgroundCanvas() {
       backgroundCanvas.width = window.innerWidth;
       backgroundCanvas.height = window.innerHeight;
       addStylizedText(); // Redraw the text when the canvas is resized
     }
-    resizeBackgroundCanvas(); // Set the initial size
 
-    // Add the stylized text
     function addStylizedText() {
       // Set the font properties
       backgroundCtx.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
@@ -63,6 +61,10 @@
       backgroundCtx.fillText(text, x, y);
     }
 
+    // Initial canvas setup
+    resizeBackgroundCanvas();
+    window.addEventListener('resize', resizeBackgroundCanvas);
+
     // ==============================
     // Garden Animation Setup
     // ==============================
@@ -78,7 +80,6 @@
     Garden.prototype = {
       grass: null,
       ambient: 1,
-      stars: null,
       initialize: function(width, height, size) {
         this.width = width;
         this.height = height;
@@ -163,6 +164,10 @@
 
     document.addEventListener("keydown", function() {
       createParticles(Math.random() * mainCanvas.width, Math.random() * mainCanvas.height * 0.5);
+    });
+
+    document.addEventListener("mousedown", function(e) {
+      createParticles(e.clientX, e.clientY);
     });
 
     // ==============================
