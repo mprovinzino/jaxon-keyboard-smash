@@ -10,13 +10,20 @@
     body {
       margin: 0;
     }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
 <body>
   <!-- Background and Game Canvases -->
-  <canvas id='kmw-background-canvas' style="position:fixed;touch-action: none">Canvas is not supported in your browser.</canvas>
-  <canvas id='s' style="position:fixed;touch-action: none">Canvas is not supported in your browser.</canvas>
-  <canvas id="canvas" style="position:fixed;touch-action: none">Canvas is not supported in your browser.</canvas>
+  <canvas id='kmw-background-canvas' style="z-index: 0;"></canvas>
+  <canvas id='s' style="z-index: 1;"></canvas>
+  <canvas id="canvas" style="z-index: 2;"></canvas>
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
@@ -30,12 +37,14 @@
     function resizeBackgroundCanvas() {
       backgroundCanvas.width = window.innerWidth;
       backgroundCanvas.height = window.innerHeight;
+      addStylizedText(); // Redraw the text when the canvas is resized
     }
     resizeBackgroundCanvas(); // Set the initial size
 
     // Add the stylized text
     function addStylizedText() {
       // Set the font properties
+      backgroundCtx.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
       backgroundCtx.font = "bold 80px Arial"; // You can change "Arial" to any other font you like
       backgroundCtx.fillStyle = "rgba(255, 255, 255, 0.8)"; // White with some transparency
 
@@ -54,18 +63,14 @@
       backgroundCtx.fillText(text, x, y);
     }
 
-    addStylizedText(); // Initial call to draw text
-
-    // Update the canvas and redraw text when the window is resized
-    window.addEventListener('resize', function() {
-      resizeBackgroundCanvas();
-      addStylizedText();
-    });
-
     // ==============================
-    // Grass and Garden Animation Setup
+    // Garden Animation Setup
     // ==============================
-    // Initialize the grass and garden
+    let gardenCanvas = document.getElementById('s');
+    let gardenCtx = gardenCanvas.getContext('2d');
+    gardenCanvas.width = window.innerWidth;
+    gardenCanvas.height = window.innerHeight;
+
     Garden = function() {
       return this;
     };
@@ -74,46 +79,23 @@
       grass: null,
       ambient: 1,
       stars: null,
-      firefly_radius: 10,
-      num_fireflyes: 40,
-      num_stars: 512,
-      width: 0,
-      height: 0,
-      
       initialize: function(width, height, size) {
         this.width = width;
         this.height = height;
         this.grass = [];
-
         for (var i = 0; i < size; i++) {
           var g = new Grass();
           g.initialize(width, height, 50, height * 1 / 3, 20, 40);
           this.grass.push(g);
         }
-
-        this.stars = [];
-        for (i = 0; i < this.num_stars; i++) {
-          this.stars.push(Math.floor(Math.random() * (width - 10) + 5));
-          this.stars.push(Math.floor(Math.random() * (height - 10) + 5));
-        }
       },
-      
       paint: function(ctx, time) {
-        ctx.save();
-        ctx.globalAlpha = 1;
-        
+        ctx.clearRect(0, 0, gardenCanvas.width, gardenCanvas.height);
         for (var i = 0; i < this.grass.length; i++) {
           this.grass[i].paint(ctx, time, this.ambient);
         }
-        ctx.restore();
       }
     };
-
-    // Initialize canvas for garden and animations
-    let gardenCanvas = document.getElementById('s');
-    let gardenCtx = gardenCanvas.getContext('2d');
-    gardenCanvas.width = window.innerWidth;
-    gardenCanvas.height = window.innerHeight;
 
     let garden = new Garden();
     garden.initialize(gardenCanvas.width, gardenCanvas.height, 300);
@@ -121,303 +103,79 @@
     let time = new Date().getTime();
 
     function animateGarden() {
-      gardenCtx.clearRect(0, 0, gardenCanvas.width, gardenCanvas.height);
       let ntime = new Date().getTime();
       let elapsed = ntime - time;
       garden.paint(gardenCtx, elapsed);
       requestAnimationFrame(animateGarden);
     }
-    requestAnimationFrame(animateGarden);
+    animateGarden(); // Start the garden animation loop
 
     // ==============================
     // Fireworks Animation and Events
     // ==============================
     let mainCanvas = document.getElementById('canvas');
     let ctx2 = mainCanvas.getContext('2d');
-    let cw = window.innerWidth;
-    let ch = window.innerHeight;
+    mainCanvas.width = window.innerWidth;
+    mainCanvas.height = window.innerHeight;
 
-    mainCanvas.width = cw;
-    mainCanvas.height = ch;
+    let particles = [];
 
-    function createParticles(x, y) {
-      // Add particle animation logic here.
+    function Particle(x, y) {
+      this.x = x;
+      this.y = y;
+      this.angle = Math.random() * Math.PI * 2;
+      this.speed = Math.random() * 5 + 2;
+      this.alpha = 1;
+      this.decay = Math.random() * 0.01 + 0.005;
     }
 
-    // Event listener for key presses to trigger fireworks
+    Particle.prototype.update = function() {
+      this.x += Math.cos(this.angle) * this.speed;
+      this.y += Math.sin(this.angle) * this.speed;
+      this.alpha -= this.decay;
+    };
+
+    Particle.prototype.draw = function() {
+      ctx2.fillStyle = `rgba(255, 165, 0, ${this.alpha})`; // Orange color
+      ctx2.beginPath();
+      ctx2.arc(this.x, this.y, 3, 0, Math.PI * 2);
+      ctx2.fill();
+    };
+
+    function createParticles(x, y) {
+      for (let i = 0; i < 30; i++) {
+        particles.push(new Particle(x, y));
+      }
+    }
+
+    function animateFireworks() {
+      ctx2.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+      for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        particles[i].draw();
+        if (particles[i].alpha <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+      requestAnimationFrame(animateFireworks);
+    }
+    animateFireworks(); // Start the fireworks animation loop
+
     document.addEventListener("keydown", function() {
-      createParticles(Math.random() * cw, Math.random() * 0.5 * ch);
+      createParticles(Math.random() * mainCanvas.width, Math.random() * mainCanvas.height * 0.5);
     });
 
-    // Resize handler to ensure all canvases are properly adjusted
+    // ==============================
+    // Resize Handler
+    // ==============================
     window.addEventListener('resize', function() {
       gardenCanvas.width = window.innerWidth;
       gardenCanvas.height = window.innerHeight;
-      cw = window.innerWidth;
-      ch = window.innerHeight;
-      mainCanvas.width = cw;
-      mainCanvas.height = ch;
+      mainCanvas.width = window.innerWidth;
+      mainCanvas.height = window.innerHeight;
+      resizeBackgroundCanvas();
     });
-
   });
 </script>
 </body>
 </html>
-
-
-<script>
-  // when animating on canvas, it is best to use requestAnimationFrame instead of setTimeout or setInterval
-  // not supported in all browsers though and sometimes needs a prefix, so we need a shim
-  window.requestAnimFrame = ( function() {
-    return window.requestAnimationFrame ||
-        window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame ||
-        function( callback ) {
-          window.setTimeout( callback, 1000 / 60 );
-        };
-  })();
-
-  // now we will setup our basic variables for the demo
-  var canvas = document.getElementById( 'canvas' ),
-      ctx2 = canvas.getContext( '2d' ),
-  // full screen dimensions
-      cw = window.innerWidth,
-      ch = window.innerHeight,
-  // particle collection
-      particles = [],
-  // starting hue
-      hue = 120,
-  // this will time the auto launches of fireworks, one launch per 80 loop ticks
-      timerTotal = 80,
-      timerTick = 0;
-
-  // set canvas dimensions
-  canvas.width = cw;
-  canvas.height = ch;
-
-// Update variables for drawing fireworks
-window.addEventListener('resize', function(event) {
-    cw = window.innerWidth,
-    ch = window.innerHeight,
-    canvas.width = cw;
-    canvas.height = ch;
-}, true);
-
-  // now we are going to setup our function placeholders for the entire demo
-
-  // get a random number within a range
-  function random( min, max ) {
-    return Math.random() * ( max - min ) + min;
-  }
-
-  // calculate the distance between two points
-  function calculateDistance( p1x, p1y, p2x, p2y ) {
-    var xDistance = p1x - p2x,
-        yDistance = p1y - p2y;
-    return Math.sqrt( Math.pow( xDistance, 2 ) + Math.pow( yDistance, 2 ) );
-  }
-
-  // create particle
-  function Particle( x, y ) {
-    this.x = x;
-    this.y = y;
-    // track the past coordinates of each particle to create a trail effect, increase the coordinate count to create more prominent trails
-    this.coordinates = [];
-    this.coordinateCount = 5;
-    while( this.coordinateCount-- ) {
-      this.coordinates.push( [ this.x, this.y ] );
-    }
-    // set a random angle in all possible directions, in radians
-    this.angle = random( 0, Math.PI * 2 );
-    this.speed = random( 1, 10 );
-    // friction will slow the particle down
-    this.friction = 0.95;
-    // gravity will be applied and pull the particle down
-    this.gravity = 1;
-    // set the hue to a random number +-50 of the overall hue variable
-    this.hue = random( hue - 50, hue + 50 );
-    this.brightness = random( 50, 80 );
-    this.alpha = 1;
-    // set how fast the particle fades out
-    this.decay = random( 0.015, 0.03 );
-  }
-
-  // update particle
-  Particle.prototype.update = function( index ) {
-    // remove last item in coordinates array
-    this.coordinates.pop();
-    // add current coordinates to the start of the array
-    this.coordinates.unshift( [ this.x, this.y ] );
-    // slow down the particle
-    this.speed *= this.friction;
-    // apply velocity
-    this.x += Math.cos( this.angle ) * this.speed;
-    this.y += Math.sin( this.angle ) * this.speed + this.gravity;
-    // fade out the particle
-    this.alpha -= this.decay;
-
-    // remove the particle once the alpha is low enough, based on the passed in index
-    if( this.alpha <= this.decay ) {
-      particles.splice( index, 1 );
-    }
-  }
-
-  // draw particle
-  Particle.prototype.draw = function() {
-    ctx2.beginPath();
-    // move to the last tracked coordinates in the set, then draw a line to the current x and y
-    ctx2.moveTo( this.coordinates[ this.coordinates.length - 1 ][ 0 ], this.coordinates[ this.coordinates.length - 1 ][ 1 ] );
-    ctx2.lineTo( this.x, this.y );
-    ctx2.strokeStyle = 'hsla(' + this.hue + ', 100%, ' + this.brightness + '%, ' + this.alpha + ')';
-    ctx2.stroke();
-  }
-
-  // create particle group/explosion
-
-  function createParticles( x, y ) {
-    // increase the particle count for a bigger explosion, beware of the canvas performance hit with the increased particles though
-    var particleCount = 30;
-    while( particleCount-- ) {
-      particles.push( new Particle( x, y ) );
-    }
-
-    var snd = new Audio("/storage/firework-sound.mp3"); // buffers automatically when created
-    snd.play();
-  }
-  document.addEventListener("DOMContentLoaded", function() {
-    // Get the background canvas and its context
-    let backgroundCanvas = document.getElementById('kmw-background-canvas');
-    let backgroundCtx = backgroundCanvas.getContext('2d');
-
-    // Set the canvas size to match the window
-    backgroundCanvas.width = window.innerWidth;
-    backgroundCanvas.height = window.innerHeight;
-
-    // Add the stylized text
-    function addStylizedText() {
-        // Set the font properties
-        backgroundCtx.font = "bold 80px Arial"; // You can change "Arial" to any other font you like
-        backgroundCtx.fillStyle = "rgba(255, 255, 255, 0.8)"; // White with some transparency
-
-        // Add shadow for a more stylized look
-        backgroundCtx.shadowColor = "black";
-        backgroundCtx.shadowOffsetX = 5;
-        backgroundCtx.shadowOffsetY = 5;
-        backgroundCtx.shadowBlur = 10;
-
-        // Draw the text in the middle of the canvas
-        let text = "Jaxon";
-        let textWidth = backgroundCtx.measureText(text).width;
-        let x = (backgroundCanvas.width - textWidth) / 2;
-        let y = backgroundCanvas.height / 2;
-
-        backgroundCtx.fillText(text, x, y);
-    }
-
-    // Call the function to add the text
-    addStylizedText();
-
-    // Optionally: Redraw text on resize if needed
-    window.addEventListener('resize', function() {
-        backgroundCanvas.width = window.innerWidth;
-        backgroundCanvas.height = window.innerHeight;
-        addStylizedText();
-    });
-});
-
-  // main demo loop
-  function loop() {
-    // create random color
-    hue= random(0, 360 );
-
-    // normally, clearRect() would be used to clear the canvas
-    // we want to create a trailing effect though
-    // setting the composite operation to destination-out will allow us to clear the canvas at a specific opacity, rather than wiping it entirely
-//    ctx2.globalCompositeOperation = 'destination-out';
-//    ctx2.globalCompositeOperation = 'source-over';
-    // decrease the alpha property to create more prominent trails
-//    ctx2.fillStyle = 'rgba(0, 0, 0, .5)';
-//    ctx2.fillRect( 0, 0, cw, ch );
-    ctx2.clearRect( 0, 0, cw, ch );
-    // change the composite operation back to our main mode
-    // lighter creates bright highlight points as the fireworks and particles overlap each other
-    ctx2.globalCompositeOperation = 'lighter';
-//    ctx2.globalCompositeOperation = 'source-over';
-
-    // draw particles
-    ctx2.lineWidth = 20;
-    ctx2.lineCap = "round";
-    // loop over each particle, draw it, update it
-    var i = particles.length;
-    while( i-- ) {
-      particles[ i ].draw();
-      particles[ i ].update( i );
-    }
-
-    // loop again
-    requestAnimFrame( loop );
-  }
-
-  // mouse event binding
-  // update the mouse coordinates on mousemove
-//  canvas.addEventListener( 'mousemove', function( e ) {
-//    mx = e.pageX - canvas.offsetLeft;
-//    my = e.pageY - canvas.offsetTop;
-//  });
-
-  // toggle mousedown state and prevent canvas from being selected
-//  canvas.addEventListener( 'mousedown', function( e ) {
-//    e.preventDefault();
-//    mousedown = true;
-//  });
-
-  document.addEventListener("keydown", function(){
-    createParticles(Math.random()*cw,Math.random()*.5*ch);
-//    fireworks.push( new Firework( cw / 2, ch, random( 0, cw ), random( 0, ch / 2 ) ) )
-  });
-
-  document.addEventListener("touchstart", function(e) {
-    timeOfLastFirework = Date.now();
-    for(let i=0; i < e.touches.length; ++i) {
-      let touch = e.touches.item(i);
-      createParticles(touch.clientX, touch.clientY);
-    }
-  });
-
-
-  let timeOfLastFirework = 0;
-  // side effect: conditionally updates the timeOfLastFirework to be Date.now().
-  let enoughTimeSinceLastFirework = function() {
-    let minimumTimeBetweenFireworks = 100;
-    if (Date.now() - timeOfLastFirework < minimumTimeBetweenFireworks) {
-      return false;
-    } else {
-      timeOfLastFirework = Date.now()
-      return true;
-    }
-  }
-
-  document.addEventListener("touchmove", function(e) {
-    if (!enoughTimeSinceLastFirework()) {
-      return;
-    }
-
-    for(let i=0; i < e.touches.length; ++i) {
-      let touch = e.touches.item(i);
-      createParticles(touch.clientX, touch.clientY);
-    }
-  });
-
-  document.addEventListener("mousedown", function(e) {
-    createParticles(e.clientX, e.clientY);
-  });
-
-
-  // TODO add mouse "drag" support (really just mouse movement when clicked)
-
-  window.addEventListener(
-      'load',
-      loop,
-      false);
-</script>
-</body>
