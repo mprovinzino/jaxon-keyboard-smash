@@ -24,18 +24,19 @@
 </canvas>
 
 <script>
-  // Update canvas sizes when window resizes.
-  window.addEventListener('resize', function(event) {
-      var canvases = document.querySelectorAll('canvas');
-      var canvas_array = [...canvases];
-      canvas_array.forEach(canvas => {
-          canvas.width = window.innerWidth;
-          canvas.height = window.innerHeight;
-      })
-  }, true);
+// Update canvas sizes when window resizes.
+window.addEventListener('resize', function(event) {
+    var canvases = document.querySelectorAll('canvas');
+    var canvas_array = [...canvases];
+    canvas_array.forEach(canvas => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    })
+}, true);
 </script>
 
 <script>
+// Grass and Garden code
 (function() {
   Grass = function() {
     return this;
@@ -99,7 +100,7 @@
           
           var ang= this.angle + Math.PI/2 + inc_punta_hierba * Math.PI/180*(this.maxAngle*Math.cos(time*0.0002));
           var px= this.coords[0]+ this.offset_control_point + this.alto_hierba*Math.cos(ang);
-          var py= this.coords[1]                  - this.alto_hierba*Math.sin(ang);
+          var py= this.coords[1] - this.alto_hierba*Math.sin(ang);
     
           var c= this.coords;
       
@@ -381,69 +382,40 @@ function createParticles( x, y ) {
   while( particleCount-- ) {
     particles.push( new Particle( x, y ) );
   }
+
+  // Play the sound
+  playSound();
+}
+
+// Function to play sound
+function playSound() {
+  // Clone the audio element to allow multiple instances to play simultaneously
+  var audioClone = snd.cloneNode();
+  audioClone.play().catch(function(error) {
+    console.error('Error playing sound:', error);
+  });
 }
 
 // Create a global audio object
 var snd = new Audio("test-sound.mp3"); // Ensure the path is correct
 
-// Variable to track if a key is currently pressed
-var keyIsDown = false;
-
+// Event listeners for interactions
 document.addEventListener("keydown", function(e){
-  if (!keyIsDown) {
-    keyIsDown = true;
+  // Only trigger on the initial keydown event
+  if (!e.repeat) {
     createParticles(Math.random()*cw, Math.random()*.5*ch);
-
-    // Play the sound if it's not already playing
-    if (snd.paused) {
-      snd.currentTime = 0; // Reset to start
-      snd.play().catch(function(error) {
-        console.error('Error playing sound:', error);
-      });
-    }
   }
 });
 
-document.addEventListener("keyup", function(e){
-  keyIsDown = false;
-  // Do not pause the sound; let it play to completion
-  // Optionally clear particles immediately
-  // particles = [];
-});
-
-// For mouse events (optional)
 document.addEventListener("mousedown", function(e) {
   createParticles(e.clientX, e.clientY);
-
-  if (snd.paused) {
-    snd.currentTime = 0; // Reset to start
-    snd.play().catch(function(error) {
-      console.error('Error playing sound:', error);
-    });
-  }
 });
 
-document.addEventListener("mouseup", function(e){
-  // Do not pause the sound; let it play to completion
-});
-
-// For touch events (optional)
 document.addEventListener("touchstart", function(e) {
   for(let i=0; i < e.touches.length; ++i) {
     let touch = e.touches.item(i);
     createParticles(touch.clientX, touch.clientY);
   }
-
-  if (snd.paused) {
-    snd.currentTime = 0; // Reset to start
-    snd.play().catch(function(error) {
-      console.error('Error playing sound:', error);
-    });
-  }
-});
-
-document.addEventListener("touchend", function(e){
-  // Do not pause the sound; let it play to completion
 });
 
 // main animation loop
