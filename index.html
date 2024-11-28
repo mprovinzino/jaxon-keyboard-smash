@@ -389,21 +389,24 @@ var snd = new Audio("test-sound.mp3"); // Ensure the path is correct
 // Variable to track if a key is currently pressed
 var keyIsDown = false;
 
-// Event listeners for interactions
 document.addEventListener("keydown", function(e){
   if (!keyIsDown) {
     keyIsDown = true;
     createParticles(Math.random()*cw, Math.random()*.5*ch);
-    snd.currentTime = 0; // Reset to start
-    snd.play().catch(function(error) {
-      console.error('Error playing sound:', error);
-    });
+
+    // Play the sound if it's not already playing
+    if (snd.paused) {
+      snd.currentTime = 0; // Reset to start
+      snd.play().catch(function(error) {
+        console.error('Error playing sound:', error);
+      });
+    }
   }
 });
 
 document.addEventListener("keyup", function(e){
   keyIsDown = false;
-  snd.pause();
+  // Do not pause the sound; let it play to completion
   // Optionally clear particles immediately
   // particles = [];
 });
@@ -411,14 +414,17 @@ document.addEventListener("keyup", function(e){
 // For mouse events (optional)
 document.addEventListener("mousedown", function(e) {
   createParticles(e.clientX, e.clientY);
-  snd.currentTime = 0; // Reset to start
-  snd.play().catch(function(error) {
-    console.error('Error playing sound:', error);
-  });
+
+  if (snd.paused) {
+    snd.currentTime = 0; // Reset to start
+    snd.play().catch(function(error) {
+      console.error('Error playing sound:', error);
+    });
+  }
 });
 
 document.addEventListener("mouseup", function(e){
-  snd.pause();
+  // Do not pause the sound; let it play to completion
 });
 
 // For touch events (optional)
@@ -427,14 +433,17 @@ document.addEventListener("touchstart", function(e) {
     let touch = e.touches.item(i);
     createParticles(touch.clientX, touch.clientY);
   }
-  snd.currentTime = 0; // Reset to start
-  snd.play().catch(function(error) {
-    console.error('Error playing sound:', error);
-  });
+
+  if (snd.paused) {
+    snd.currentTime = 0; // Reset to start
+    snd.play().catch(function(error) {
+      console.error('Error playing sound:', error);
+    });
+  }
 });
 
 document.addEventListener("touchend", function(e){
-  snd.pause();
+  // Do not pause the sound; let it play to completion
 });
 
 // main animation loop
