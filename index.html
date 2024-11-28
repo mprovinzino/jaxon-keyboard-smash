@@ -173,7 +173,7 @@
       ctx.globalAlpha= 1;
 
       var i;
-      // draw fireflyes
+      // draw fireflies
         ctx.fillStyle= '#ffff00';      
         for(i=0; i<this.num_fireflyes*2; i+=2) {
           var angle= Math.PI*2*Math.sin(time*3E-4) + i*Math.PI/50;
@@ -281,7 +281,7 @@ lerpindex= 0;
 </script>
 
 <script>
-// when animating on canvas, it is best to use requestAnimationFrame instead of setTimeout or setInterval
+// when animating on canvas, it is best to use requestAnimationFrame
 window.requestAnimFrame = ( function() {
   return window.requestAnimationFrame ||
       window.webkitRequestAnimationFrame ||
@@ -381,13 +381,61 @@ function createParticles( x, y ) {
   while( particleCount-- ) {
     particles.push( new Particle( x, y ) );
   }
+}
 
-  // Play the sound
-  var snd = new Audio("firework-sound.mp3"); // Ensure the path is correct
+// Create a global audio object
+var snd = new Audio("test-sound.mp3"); // Ensure the path is correct
+
+// Variable to track if a key is currently pressed
+var keyIsDown = false;
+
+// Event listeners for interactions
+document.addEventListener("keydown", function(e){
+  if (!keyIsDown) {
+    keyIsDown = true;
+    createParticles(Math.random()*cw, Math.random()*.5*ch);
+    snd.currentTime = 0; // Reset to start
+    snd.play().catch(function(error) {
+      console.error('Error playing sound:', error);
+    });
+  }
+});
+
+document.addEventListener("keyup", function(e){
+  keyIsDown = false;
+  snd.pause();
+  // Optionally clear particles immediately
+  // particles = [];
+});
+
+// For mouse events (optional)
+document.addEventListener("mousedown", function(e) {
+  createParticles(e.clientX, e.clientY);
+  snd.currentTime = 0; // Reset to start
   snd.play().catch(function(error) {
     console.error('Error playing sound:', error);
   });
-}
+});
+
+document.addEventListener("mouseup", function(e){
+  snd.pause();
+});
+
+// For touch events (optional)
+document.addEventListener("touchstart", function(e) {
+  for(let i=0; i < e.touches.length; ++i) {
+    let touch = e.touches.item(i);
+    createParticles(touch.clientX, touch.clientY);
+  }
+  snd.currentTime = 0; // Reset to start
+  snd.play().catch(function(error) {
+    console.error('Error playing sound:', error);
+  });
+});
+
+document.addEventListener("touchend", function(e){
+  snd.pause();
+});
 
 // main animation loop
 function loop() {
@@ -440,46 +488,6 @@ function loop() {
   // loop again
   requestAnimFrame( loop );
 }
-
-// Event listeners for interactions
-document.addEventListener("keydown", function(){
-  createParticles(Math.random()*cw, Math.random()*.5*ch);
-});
-
-document.addEventListener("touchstart", function(e) {
-  timeOfLastFirework = Date.now();
-  for(let i=0; i < e.touches.length; ++i) {
-    let touch = e.touches.item(i);
-    createParticles(touch.clientX, touch.clientY);
-  }
-});
-
-let timeOfLastFirework = 0;
-// side effect: conditionally updates the timeOfLastFirework to be Date.now().
-let enoughTimeSinceLastFirework = function() {
-  let minimumTimeBetweenFireworks = 100;
-  if (Date.now() - timeOfLastFirework < minimumTimeBetweenFireworks) {
-    return false;
-  } else {
-    timeOfLastFirework = Date.now()
-    return true;
-  }
-}
-
-document.addEventListener("touchmove", function(e) {
-  if (!enoughTimeSinceLastFirework()) {
-    return;
-  }
-
-  for(let i=0; i < e.touches.length; ++i) {
-    let touch = e.touches.item(i);
-    createParticles(touch.clientX, touch.clientY);
-  }
-});
-
-document.addEventListener("mousedown", function(e) {
-  createParticles(e.clientX, e.clientY);
-});
 
 // Start the loops after window loads
 window.addEventListener('load', function() {
