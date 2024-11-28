@@ -511,6 +511,46 @@ window.addEventListener('resize', function(event) {
     var snd = new Audio("/storage/firework-sound.mp3"); // buffers automatically when created
     snd.play();
   }
+  document.addEventListener("DOMContentLoaded", function() {
+    // Get the background canvas and its context
+    let backgroundCanvas = document.getElementById('kmw-background-canvas');
+    let backgroundCtx = backgroundCanvas.getContext('2d');
+
+    // Set the canvas size to match the window
+    backgroundCanvas.width = window.innerWidth;
+    backgroundCanvas.height = window.innerHeight;
+
+    // Add the stylized text
+    function addStylizedText() {
+        // Set the font properties
+        backgroundCtx.font = "bold 80px Arial"; // You can change "Arial" to any other font you like
+        backgroundCtx.fillStyle = "rgba(255, 255, 255, 0.8)"; // White with some transparency
+
+        // Add shadow for a more stylized look
+        backgroundCtx.shadowColor = "black";
+        backgroundCtx.shadowOffsetX = 5;
+        backgroundCtx.shadowOffsetY = 5;
+        backgroundCtx.shadowBlur = 10;
+
+        // Draw the text in the middle of the canvas
+        let text = "Jaxon";
+        let textWidth = backgroundCtx.measureText(text).width;
+        let x = (backgroundCanvas.width - textWidth) / 2;
+        let y = backgroundCanvas.height / 2;
+
+        backgroundCtx.fillText(text, x, y);
+    }
+
+    // Call the function to add the text
+    addStylizedText();
+
+    // Optionally: Redraw text on resize if needed
+    window.addEventListener('resize', function() {
+        backgroundCanvas.width = window.innerWidth;
+        backgroundCanvas.height = window.innerHeight;
+        addStylizedText();
+    });
+});
 
   // main demo loop
   function loop() {
