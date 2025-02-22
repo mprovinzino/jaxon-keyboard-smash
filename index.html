@@ -185,7 +185,8 @@ window.addEventListener('resize', function(event) {
               radius*Math.cos(angle),
               
               this.height*3/4 + 
-              0.25*this.stars[i+1] +  
+              0.25*this.stars[i+1] +   it
+            
               20*Math.sin(time*3E-4) * 5* Math.cos(time*0.00001*i)+  
               radius*Math.sin(angle),
               
@@ -200,11 +201,31 @@ window.addEventListener('resize', function(event) {
     }
   };
 })();
-
+// Preload the moon image
+var moon = new Image();
+moon.src = 'moon.png'; // Adjust the path as needed
 
     function _doit()    {
       ctx.fillStyle= gradient;
       ctx.fillRect(0,0,canvas.width,canvas.height);
+      function _doit() {
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // ADD THIS BLOCK:
+  if (moon.complete) {
+    var moonWidth = 150;
+    var moonHeight = 150;
+    var x = canvas.width - moonWidth - 20; // or wherever you want to place it
+    var y = 20;
+    ctx.drawImage(moon, x, y, moonWidth, moonHeight);
+  }
+  
+  var ntime = new Date().getTime();
+  var elapsed = ntime - time;
+  garden.paint(ctx, elapsed);
+  requestAnimationFrame(_doit);
+}
       var ntime= new Date().getTime();
       var elapsed= ntime-time;
       garden.paint( ctx, elapsed );
